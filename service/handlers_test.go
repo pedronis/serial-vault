@@ -447,19 +447,14 @@ func TestSignHandlerSerialRequestPlusModelAssertionWrongType(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error encoding serial-request: %v", err)
 	}
-	mismatchedModelAssertion := strings.Replace(modelAssertion, "model: alder\n", "model: other\n", 1)
-	modelAssert, err := asserts.Decode([]byte(mismatchedModelAssertion))
+	err = enc.Encode(serialRequest)
 	if err != nil {
-		t.Errorf("Error decoding model: %v", err)
-	}
-	err = enc.Encode(modelAssert)
-	if err != nil {
-		t.Errorf("Error encoding model: %v", err)
+		t.Errorf("Error encoding 2nd assertion: %v", err)
 	}
 
 	result, _ := sendRequestSignError(t, "POST", "/v1/serial", buf, "ValidAPIKey")
-	if result.ErrorCode != "mismatched-model" {
-		t.Errorf("Expected a 'mismatched model' message, got %s", result.ErrorCode)
+	if result.ErrorCode != "invalid-second-type" {
+		t.Errorf("Expected an 'invalid second type' message, got %s", result.ErrorCode)
 	}
 }
 
@@ -486,14 +481,19 @@ func TestSignHandlerSerialRequestPlusModelAssertionWithMismatchedModel(t *testin
 	if err != nil {
 		t.Errorf("Error encoding serial-request: %v", err)
 	}
-	err = enc.Encode(serialRequest)
+	mismatchedModelAssertion := strings.Replace(modelAssertion, "model: alder\n", "model: other\n", 1)
+	modelAssert, err := asserts.Decode([]byte(mismatchedModelAssertion))
 	if err != nil {
-		t.Errorf("Error encoding 2nd assertion: %v", err)
+		t.Errorf("Error decoding model: %v", err)
+	}
+	err = enc.Encode(modelAssert)
+	if err != nil {
+		t.Errorf("Error encoding model: %v", err)
 	}
 
 	result, _ := sendRequestSignError(t, "POST", "/v1/serial", buf, "ValidAPIKey")
-	if result.ErrorCode != "invalid-second-type" {
-		t.Errorf("Expected an 'invalid second type' message, got %s", result.ErrorCode)
+	if result.ErrorCode != "mismatched-model" {
+		t.Errorf("Expected a 'mismatched model' message, got %s", result.ErrorCode)
 	}
 }
 
